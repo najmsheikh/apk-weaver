@@ -8,6 +8,9 @@
     "start": "tsc && node dist/index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "bin": {
+    "apk-weaver": "dist/index.js"
+  },
   "keywords": [
     "apk",
     "weaver",
