@@ -18,8 +18,10 @@
   "author": "Najm Sheikh <hello@najmsheikh.me> (https://www.najmsheikh.me/)",
   "license": "MIT",
   "dependencies": {
+    "chalk": "^4.1.0",
     "execa": "^4.0.3",
-    "listr": "^0.14.3"
+    "listr": "^0.14.3",
+    "yargs": "^16.0.3"
   },
   "devDependencies": {
     "@types/execa": "^2.0.0",
