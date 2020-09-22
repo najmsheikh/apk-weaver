@@ -1,5 +1,7 @@
 import chalk from "chalk";
+import execa, {ExecaChildProcess} from "execa";
 import fs, {PathLike} from "fs";
+import {Observable} from "rxjs";
 
 /**
  * Formats the string as an identifiable success message on the CLI.
@@ -30,8 +32,38 @@ const checkFileExists = (path: PathLike): boolean => {
     }
 }
 
+/**
+ * Observe an {@link ExecaChildProcess} for messages outputted to the console.
+ * @param process the child process to observe
+ * @return messages outputted by the process
+ */
+const observeProcess = (process: ExecaChildProcess): Observable<string> => {
+    return new Observable(subscriber => {
+        process
+            .then(() => subscriber.complete())
+            .catch(error => subscriber.error(error));
+
+        process.stdout.on('data', (data: Buffer) => {
+            subscriber.next(data.toString().trim());
+        });
+    });
+}
+
+/**
+ * Execute a Java Archive file (JAR) using the system-wide installation of Java.
+ * @param jarPath the path to the JAR file
+ * @param args optional additional commands or arguments to the JAR file
+ */
+const executeJar = (jarPath: string, args: string[]): ExecaChildProcess => {
+    return execa('java', ['-jar', jarPath, ...args], {
+        all: true,
+    });
+}
+
 export {
     formatAsSuccessMessage,
     formatAsErrorMessage,
-    checkFileExists
+    checkFileExists,
+    observeProcess,
+    executeJar
 };
