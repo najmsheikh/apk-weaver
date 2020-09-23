@@ -1,6 +1,7 @@
 import chalk from "chalk";
 import execa, {ExecaChildProcess} from "execa";
 import fs, {PathLike} from "fs";
+import path from "path";
 import {Observable} from "rxjs";
 
 /**
@@ -30,6 +31,22 @@ const checkFileExists = (path: PathLike): boolean => {
     } catch (e) {
         return false;
     }
+}
+
+/**
+ * Read the provided directory and retrieve the absolute paths to the enclosing files and folders.
+ * @param dirPath the target directory to read
+ */
+const readDirectory = (dirPath: string): Promise<string[]> => {
+    return new Promise<string[]>((resolve, reject) => {
+        fs.readdir(dirPath, (err, files) => {
+            if (err) {
+                reject(err)
+            } else {
+                resolve(files.map(file => path.join(dirPath, file)))
+            }
+        });
+    });
 }
 
 /**
@@ -76,6 +93,7 @@ export {
     formatAsSuccessMessage,
     formatAsErrorMessage,
     checkFileExists,
+    readDirectory,
     observeProcess,
     executeJar,
     executeJarWithClassPath,
