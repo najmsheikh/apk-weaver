@@ -60,10 +60,23 @@ const executeJar = (jarPath: string, args: string[]): ExecaChildProcess => {
     });
 }
 
+/**
+ * Execute a Java program with its required classpath.
+ * @param classPath the claspath required by the program
+ * @param mainClass the main class to run
+ * @param args optional additional commands or arguments
+ */
+const executeJarWithClassPath = (classPath: string, mainClass: string, args: string[]): ExecaChildProcess => {
+    return execa('java', ['-classpath', `temp.jar:${classPath}/*`, mainClass, ...args], {
+        all: true,
+    });
+}
+
 export {
     formatAsSuccessMessage,
     formatAsErrorMessage,
     checkFileExists,
     observeProcess,
-    executeJar
+    executeJar,
+    executeJarWithClassPath,
 };
