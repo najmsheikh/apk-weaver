@@ -7,6 +7,7 @@ import Jetifier from "./tools/jetifier";
 import Listr from "listr";
 import fs from "fs";
 import path from "path";
+import mergeCode from "./tasks/code-merge-task"
 
 const options = yargs
     .usage('Usage: $0 -t <target> -s <source>')
@@ -24,7 +25,7 @@ const options = yargs
     .argv;
 
 const main = async function () {
-    const isDebug = JSON.parse(process.env.DEBUG) === true;
+    const isDebug = process.env.DEBUG ? JSON.parse(process.env.DEBUG) === true : false;
 
     const apktool = new ApkTool();
     const jetifier = new Jetifier();
@@ -72,6 +73,7 @@ const main = async function () {
                             ctx.sourceAar = path.join(workingDirectory, 'jetified.aar');
                             return jetifier.jetify(sourceAar, ctx.sourceAar);
                         } else {
+                            ctx.sourceAar = sourceAar;
                             task.skip('Target APK does not use AndroidX -- no need to Jetify the AAR!');
                         }
                     });
@@ -79,7 +81,7 @@ const main = async function () {
         },
         {
             title: 'Merge code',
-            task: (ctx, task) => task.skip('TODO')
+            task: (ctx, task) => mergeCode(ctx, task, workingDirectory)
         },
         {
             title: 'Merge resources',
