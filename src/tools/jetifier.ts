@@ -1,6 +1,6 @@
 import {Observable} from "rxjs";
 import Tool from "./tool";
-import {executeJarWithClassPath, observeProcess} from "../utils";
+import {executeJarWithClassPath} from "../utils";
 import path from "path";
 
 /**
@@ -44,12 +44,10 @@ export default class Jetifier extends Tool {
     }
 
     protected runWithArgs(...args: string[]): Observable<string> {
-        return observeProcess(
-            executeJarWithClassPath(
-                this.toolPath,
-                'com.android.tools.build.jetifier.standalone.Main',
-                args
-            )
-        )
+        return executeJarWithClassPath(
+            this.toolPath,
+            'com.android.tools.build.jetifier.standalone.Main',
+            args
+        );
     }
 }

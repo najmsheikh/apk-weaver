@@ -1,5 +1,5 @@
 import chalk from "chalk";
-import execa, {ExecaChildProcess} from "execa";
+import process from "child_process";
 import fs, {PathLike} from "fs";
 import path from "path";
 import {Observable} from "rxjs";
@@ -50,30 +50,21 @@ const readDirectory = (dirPath: string): Promise<string[]> => {
 }
 
 /**
- * Observe an {@link ExecaChildProcess} for messages outputted to the console.
- * @param process the child process to observe
- * @return messages outputted by the process
- */
-const observeProcess = (process: ExecaChildProcess): Observable<string> => {
-    return new Observable(subscriber => {
-        process
-            .then(() => subscriber.complete())
-            .catch(error => subscriber.error(error));
-
-        process.stdout.on('data', (data: Buffer) => {
-            subscriber.next(data.toString().trim());
-        });
-    });
-}
-
-/**
  * Execute a Java Archive file (JAR) using the system-wide installation of Java.
  * @param jarPath the path to the JAR file
  * @param args optional additional commands or arguments to the JAR file
  */
-const executeJar = (jarPath: string, args: string[]): ExecaChildProcess => {
-    return execa('java', ['-jar', jarPath, ...args], {
-        all: true,
+const executeJar = (jarPath: string, args: string[]): Observable<string> => {
+    return new Observable<string>(observable => {
+        const java = process.exec(`java -jar ${jarPath} ${args.join(' ')}`, error => {
+            if (error) {
+                observable.error(error);
+            }
+            observable.complete();
+        });
+
+        java.stdout.on('data', data => observable.next(data.toString().trim()));
+        java.stderr.on('data', chunk => observable.next(chunk.toString().trim())); // ignore warnings
     });
 }
 
@@ -83,9 +74,17 @@ const executeJar = (jarPath: string, args: string[]): ExecaChildProcess => {
  * @param mainClass the main class to run
  * @param args optional additional commands or arguments
  */
-const executeJarWithClassPath = (classPath: string, mainClass: string, args: string[]): ExecaChildProcess => {
-    return execa('java', ['-classpath', `temp.jar:${classPath}/*`, mainClass, ...args], {
-        all: true,
+const executeJarWithClassPath = (classPath: string, mainClass: string, args: string[]): Observable<string> => {
+    return new Observable<string>(observable => {
+        const java = process.exec(`java -classpath temp.jar:${classPath}/* ${mainClass} ${args.join(' ')}`, error => {
+            if (error) {
+                observable.error(error);
+            }
+            observable.complete();
+        });
+
+        java.stdout.on('data', data => observable.next(data.toString().trim()));
+        java.stderr.on('data', chunk => observable.next(chunk.toString().trim())); // ignore warnings
     });
 }
 
@@ -94,7 +93,6 @@ export {
     formatAsErrorMessage,
     checkFileExists,
     readDirectory,
-    observeProcess,
     executeJar,
     executeJarWithClassPath,
 };
